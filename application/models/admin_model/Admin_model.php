@@ -199,7 +199,6 @@ public function fetchAllData($data,$tablename){
         ->join('employee_level', 'employee_table.emp_level = employee_level.employee_level_id')
         ->join('departments', 'employee_table.employee_department = departments.department_id')
         ->join('designation', 'employee_table.employee_designation = designation.designation_id')
-        ->where('employee_status', 1)
         ->order_by('main_employee_id', "DESC")
         ->get();
         return $query->result_array();
@@ -214,7 +213,6 @@ public function fetchAllData($data,$tablename){
         ->join('countries', 'employee_table.employee_country_id = countries.country_id', 'left')
         ->join('spectrum_table', 'employee_table.emp_level = spectrum_table.employee_level')
         ->where('employee_table.main_employee_id', $id)
-        ->where('employee_status', 1)
         ->order_by('employee_table.main_employee_id', "DESC")
         ->get();
         return $query->row();
@@ -263,7 +261,6 @@ public function EmployeeSalaryListData(){
     $q = $this->db->select('*')
     ->from('employee_table')
     ->join('salary', 'employee_table.main_employee_id = salary.employee_id')
-    ->where('employee_table.employee_status', 1)
     ->order_by('employee_table.main_employee_id', "DESC")
     ->get();
     return $q->result();
@@ -277,7 +274,6 @@ public function fetchEmployeeSalary(){
     $q = $this->db->select('*')
     ->from('salary')
     ->join('employee_table', 'salary.employee_id = employee_table.main_employee_id')
-    ->where('employee_table.employee_status', 1)
     ->order_by('salary_id', "DESC")
     ->get();
     return $q->result_array();
@@ -288,7 +284,6 @@ public function getEmployeeSalaryRecord(){
     ->from('salary')
     ->join('employee_table', 'salary.employee_id = employee_table.main_employee_id')
     ->join('employee_level', 'employee_table.emp_level = employee_level.employee_level_id')
-    ->where('employee_table.employee_status', 1)
     ->order_by('salary_id', "DESC")
     ->get();
     return $q->result();
@@ -399,7 +394,6 @@ function getQuestionRecords(){
     ->join('employee_table', 'spectrum_table.employee_level = employee_table.emp_level')
     ->join('departments', 'employee_table.employee_department = departments.department_id')
     ->join('designation', 'employee_table.employee_designation = designation.designation_id')
-    ->where('employee_table.employee_status', 1)
     ->group_by('spectrum_table.spectrum_id', 'DESC')
     ->get();
     return $q->result();
@@ -545,7 +539,6 @@ public function fetchAllAssignData(){
     ->join('departments', 'employee_table.employee_department = departments.department_id', 'left')
     ->join('designation', 'employee_table.employee_designation = designation.designation_id', 'left')
     ->where_in('employee_table.user_role', [2, 3])
-    ->where('employee_table.employee_status', 1)
     ->group_by('employee_table.main_employee_id', 'DES')
     ->get();
     
@@ -560,7 +553,6 @@ public function getAllEmployeeWithLevel(){
         ->join('departments', 'employee_table.employee_department = departments.department_id', 'left')
         ->join('designation', 'employee_table.employee_designation = designation.designation_name', 'left')
         ->where_in('employee_table.user_role', [1, 2])
-        ->where('employee_table.employee_status', 1)
         ->group_by('employee_table.main_employee_id', 'DES')
         ->get();
     return $q->result();
@@ -589,7 +581,7 @@ public function fetchAllAssignemployeeData($id){
         ->from('pe_assign_employee')
         ->join('employee_table', 'pe_assign_employee.assign_employee_id = employee_table.main_employee_id', 'left')
         ->join('designation' , 'employee_table.employee_designation = designation.designation_id', 'left')
-        ->where('employee_table.employee_status', 1)
+        // ->group_by('pe_assign_employee.assign_id', "DESC")
         ->where('pe_assign_employee.assign_supervisor_id', $id)
         ->get();
         return $q->result_array();
@@ -603,7 +595,6 @@ public function fetchAllAssignemployeeData($id){
         ->join('departments', 'employee_table.employee_department = departments.department_id', 'left')
         ->join('designation', 'employee_table.employee_designation = designation.designation_name', 'left')
         ->where_in('employee_level.employee_level_value', [2, 3])
-        ->where('employee_table.employee_status', 1)
         ->group_by('employee_level.employee_level_name', 'DES')
         ->get();
         return $q->result();
@@ -620,29 +611,17 @@ public function fetchAllAssignemployeeData($id){
 
     
     public function getEmployeeEvaluationRecordDB(){
+        
+    
         $q = $this->db->select('*')
             ->from('pe_evaluation_table')
             ->join('employee_table', 'employee_table.main_employee_id = pe_evaluation_table.employee_id')
             ->join('spectrum_table', 'spectrum_table.employee_level = employee_table.emp_level')
-            ->where('pe_evaluation_table.evaluation_delete_status', 1)
             ->where_in('pe_evaluation_table.evaluation_status', array(2, 3));
     
     
         return $q->get()->result_array();
 
-    }
-
-    public function getEmployeeEvaluationHistoryDB($evaluation_id){
-        $q = $this->db->select('*')
-            ->from('pe_evaluation_table')
-            ->join('employee_table', 'employee_table.main_employee_id = pe_evaluation_table.employee_id')
-            ->join('spectrum_table','spectrum_table.employee_level = employee_table.emp_level')
-            ->where('pe_evaluation_table.evaluation_delete_status', 1)
-            ->where('pe_evaluation_table.employee_evaluation_id', $evaluation_id)
-            ->where_in('pe_evaluation_table.evaluation_status', array(2, 3));
-            // return $q->get()->result_array(); 
-
-            echo '<pre>'; print_r($q->get()->result_array()); echo '</pre>';exit;
     }
 
     public function LockSubmitEvaluation($id, $data){
@@ -669,14 +648,15 @@ public function fetchAllAssignemployeeData($id){
         return $this->db->delete('employee_history', ['history_employee_id' => $id]);
     }
 
-    public function updateEmpDetails($id, $data){
-        $this->db->where('main_employee_id', $id);
-        return $this->db->update('employee_table', $data);
-    }
-
-    public function trashEmployeeEvaluationRecordDB($id, $data){
-        $this->db->where('employee_evaluation_id', $id);
-        return $this->db->update('pe_evaluation_table', $data);
+    public function fatchEmployeeEvaluationHistory($evaluation_id){
+        $q = $this->db->select('*')
+        ->from('pe_evaluation_table')
+        ->join('employee_table', 'employee_table.main_employee_id = pe_evaluation_table.employee_id')
+        ->join('spectrum_table','spectrum_table.employee_level = employee_table.emp_level')
+        ->join('employee_history', 'employee_history.history_employee_id = pe_evaluation_table.employee_evaluation_id')
+        ->where('pe_evaluation_table.employee_evaluation_id', $evaluation_id)
+        ->get();
+        return $q->result_array();
     }
 
 }

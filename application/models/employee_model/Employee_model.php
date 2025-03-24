@@ -17,7 +17,6 @@ class Employee_model extends CI_Model {
             ->join('countries', 'employee_table.employee_country_id = countries.country_id')
             ->join('employee_sub_level', 'employee_table.emp_sub_level = employee_sub_level.employee_sub_level_id', 'left')
             ->where('employee_table.main_employee_id', $id)
-            ->where('employee_table.employee_status', 1)
             ->group_by('employee_table.main_employee_id');
         
         $q = $this->db->get();
@@ -45,7 +44,6 @@ class Employee_model extends CI_Model {
         ->join('departments', 'employee_table.employee_department = departments.department_id', 'left')
         ->join('designation', 'employee_table.employee_designation = designation.designation_id', 'left')
         ->where('employee_table.main_employee_id', $id)
-        ->where('employee_table.employee_status', 1)
         ->get();
         return $q->row();
     }
@@ -112,7 +110,6 @@ class Employee_model extends CI_Model {
         ->join('pe_evaluation_score_table', 'pe_evaluation_table.employee_evaluation_id = pe_evaluation_score_table.employee_evaluation_id')
         ->join('pe_question_table', 'pe_question_table.question_id = pe_evaluation_score_table.question_id')
         ->join('spectrum_table', 'spectrum_table.spectrum_id = pe_question_table.spectrum_id')
-        ->where('pe_evaluation_table.evaluation_delete_status', 1)
         ->where('pe_evaluation_table.employee_id', $id)
         ->group_by('pe_evaluation_table.employee_evaluation_id')
         ->get();
@@ -175,7 +172,6 @@ class Employee_model extends CI_Model {
         ->join('pe_evaluation_table', 'pe_evaluation_table.employee_evaluation_id = pe_evaluation_history_id.performance_id')
         ->join('employee_table', 'employee_table.main_employee_id = pe_evaluation_history_id.supervisor_id')
         ->where('pe_evaluation_history_id.performance_id', $id)
-        ->where('employee_table.employee_status', 1)
         ->get();
         return $q->row();
     }
@@ -199,16 +195,6 @@ class Employee_model extends CI_Model {
     public function updateGoals($id, $data){
         $this->db->where('employee_evaluation_id', $id);
         return $this->db->update('pe_goals_table', $data);
-    }
-
-    public function updateEmpDetails($id, $data){
-        $this->db->where('main_employee_id', $id);
-        return $this->db->update('employee_table', $data);
-    }
-
-    public function trashEmployeeEvaluationRecordDB($id, $data){
-        $this->db->where('employee_evaluation_id', $id);
-        return $this->db->update('pe_evaluation_table', $data);
     }
 
 }

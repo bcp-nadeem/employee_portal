@@ -31,7 +31,6 @@ class Supervisor_model extends CI_Model {
             ->from('pe_evaluation_table')
             ->join('employee_table', 'employee_table.main_employee_id = pe_evaluation_table.employee_id')
             ->join('spectrum_table', 'spectrum_table.employee_level = employee_table.emp_level')
-            ->where('pe_evaluation_table.evaluation_delete_status', 1)
             ->where_in('pe_evaluation_table.evaluation_status', array(2, 3));
     
         // Ensure employee_id is an array and not empty
@@ -58,7 +57,6 @@ class Supervisor_model extends CI_Model {
             ->join('designation', 'designation.designation_id = employee_table.employee_designation')
             ->join('employee_sub_level', 'employee_table.emp_sub_level = employee_sub_level.employee_sub_level_id', 'left')
             ->join('employee_level', 'spectrum_table.employee_level = employee_level.employee_level_id')
-            ->where('employee_table.employee_status', 1)
             ->where_in('pe_evaluation_table.evaluation_status', array(2, 3));
     
         // Ensure employee_id is an array and not empty
@@ -112,7 +110,6 @@ class Supervisor_model extends CI_Model {
         ->from('pe_evaluation_table')
         ->join('employee_table', 'employee_table.main_employee_id = pe_evaluation_table.employee_id')
         ->where('pe_evaluation_table.employee_evaluation_id', $id)
-        ->where('employee_table.employee_status', 1)
         ->group_by('pe_evaluation_table.employee_evaluation_id')
         ->get();
         return $q->row();
@@ -127,19 +124,23 @@ class Supervisor_model extends CI_Model {
             ->join('employee_level', 'spectrum_table.employee_level = employee_level.employee_level_id')
             ->join('employee_sub_level', 'employee_level.employee_level_id = employee_sub_level.level_id')
             ->where('main_employee_id', $id)
-            ->where('employee_table.employee_status', 1)
             ->get();
         return $q->row();
     }
 
-    public function updateEmpDetails($id, $data){
-        $this->db->where('main_employee_id', $id);
-        return $this->db->update('employee_table', $data);
-    }
+    public function fatchEmployeeEvaluationHistory($evaluation_id, $supervisor_id){
+        $q = $this->db->select('*')
+        ->from('pe_evaluation_table')
+        ->join('employee_table', 'employee_table.main_employee_id = pe_evaluation_table.employee_id')
+        ->join('spectrum_table','spectrum_table.employee_level = employee_table.emp_level')
+        ->join('employee_history', 'employee_history.history_employee_id = pe_evaluation_table.employee_evaluation_id')
+        ->join('pe_assign_employee', 'employee_table.main_employee_id = pe_assign_employee.assign_employee_id', 'left')
 
-    public function trashEmployeeEvaluationRecordDB($id, $data){
-        $this->db->where('employee_evaluation_id', $id);
-        return $this->db->update('pe_evaluation_table', $data); 
+        ->where('pe_assign_employee.assign_supervisor_id', $supervisor_id)
+        ->where('pe_evaluation_table.employee_evaluation_id', $evaluation_id)
+        ->get();
+        return $q->result_array();    
+
     }
     
 
