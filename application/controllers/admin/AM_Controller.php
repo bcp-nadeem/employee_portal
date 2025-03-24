@@ -731,30 +731,9 @@ class AM_Controller extends CI_Controller {
                     <i class="bx bx-dots-vertical-rounded"></i>
                 </button>
                 <div class="dropdown-menu">
-
-                <a class="dropdown-item" href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#trashEmployee'.$value['main_employee_id'].'">
-                    <i class="bx bx-trash-alt me-1"></i> Delete
-                </a>
+    
                 </div>
-            </div>
-            <div class="modal fade" id="trashEmployee'.$value['main_employee_id'].'" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Delete Employee</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <p>Are you sure you want to delete this employee? Currenty moving on the trash.</p>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-                            <a href="'.base_url('admin/AM_Controller/trashEmployeeRecord/'.$value['main_employee_id']).'" class="btn btn-danger"><i class="bx bx-trash-alt me-1"></i> Trash</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            ';
+            </div>';
 
             $Img = '<div class="avatar-edit">
                         <img src="'.base_url($value['employee_image']).'" alt="admin profile" class="w-px-40 h-auto rounded-circle">&nbsp;
@@ -808,21 +787,6 @@ class AM_Controller extends CI_Controller {
         $this->load->view('include/scripts');
         $this->load->view('include/footer');
 
-    }
-
-   
-    public function trashEmployeeRecord($id){
-        $data = [
-            'employee_status' => 0
-        ];
-        $result = $this->am->updateEmpDetails($id, $data);
-        if($result){
-            $this->session->set_flashdata('success', 'Employee Deleted Successfully!!!');
-            redirect('admin/AM_Controller/viewEmployeeList');
-        }else{
-            $this->session->set_flashdata('error', 'Please Try Again!');
-            redirect('admin/AM_Controller/viewEmployeeList');
-        }
     }
 
     public function deleteHistoryRecord(){
@@ -2031,9 +1995,6 @@ public function deleteLevelsRecord(){
                                     data-bs-target="#lockEvaluationModal'.$value['employee_evaluation_id'].'">
                                     <i class="bx bxs-lock-alt"></i> Lock/Unlock
                                 </a>
-                                <a class="dropdown-item" href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#trashEmployeeEvaluation'.$value['employee_evaluation_id'].'">
-                                    <i class="bx bx-trash-alt me-1"></i> Delete Performance
-                                </a>
                             </div>
                         </div>
 
@@ -2088,26 +2049,7 @@ public function deleteLevelsRecord(){
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="modal fade" id="trashEmployeeEvaluation'.$value['employee_evaluation_id'].'" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Delete Evaluation</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        '.($value['evaluation_status'] > 1 ? '<p>Are you sure you want to delete this evaluation?</p>' : '<p>This evaluation is not locked!!</p>').'
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-                                        '.($value['evaluation_status'] == 1 ? '<button type="button" class="btn btn-secondary"><i class="bx bx-trash-alt me-1" disabled></i> Trash</button>' : '<a href="'.base_url('admin/AM_Controller/trashEmployeeEvaluationRecord/'.$value['employee_evaluation_id']).'" class="btn btn-danger"><i class="bx bx-trash-alt me-1"></i> Trash</a>').'
-                                    </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        ';
+                        </div>';
 
                 // Determine period and month
                 switch($value['evaluation_period']) {
@@ -2166,22 +2108,6 @@ public function deleteLevelsRecord(){
         header('Content-Type: application/json');
         echo json_encode($response);
         exit;
-    }
-
-    public function trashEmployeeEvaluationRecord($evaluation_id){
-        $data = array(
-            'evaluation_delete_status' => 0,
-            'modification_date' => date('Y-m-d')
-        );
-        $result = $this->am->trashEmployeeEvaluationRecordDB($evaluation_id, $data);
-
-        if($result){
-            $this->session->set_flashdata('success', 'Evaluation Deleted Successfully!');
-            redirect('admin/AM_Controller/viewEmployeePerformanceList');
-        }else{
-            $this->session->set_flashdata('error', 'Evaluation Deleted Failed!');
-            redirect('admin/AM_Controller/viewEmployeePerformanceList');
-        }
     }
 
 
@@ -2325,196 +2251,6 @@ public function deleteLevelsRecord(){
         redirect("admin/AM_Controller/viewEmployeeEvaluationDetails/" . $id);
     }
 
-
-    public function viewEmployeePerformanceHistory($evaluation_id){
-
-        $menuControl = $this->session->userdata('user_role');
-    
-        $data['table_name'] = 'admin_employee_evaluation_history';
-        $data['function_url'] = 'admin/AM_Controller/getEmployeeEvaluationHistory/'.$evaluation_id;
-        $columns = [
-            ['data' => 0, 'title' => 'Employee', 'filterType' => 'text'],
-            ['data' => 1, 'title' => 'Peroid', 'filterType' => 'select'],
-            ['data' => 2, 'title' => 'Start Date', 'filterType' => 'date'],
-            ['data' => 3, 'title' => 'End Date', 'filterType' => 'date'],
-            ['data' => 4, 'title' => 'Spectrum', 'filterType' => 'select'],
-            ['data' => 5, 'title' => 'Evaluation Status', 'filterType' => 'select'],
-            ['data' => 6, 'title' => 'Actions', 'orderable' => false, 'filterable' => false]
-        ];
-        
-        $data['columns'] = $columns;
-
-       
-        $this->load->view('include/header');
-        $this->load->view('include/left-navbar', $menuControl);
-        $this->load->view('admin/employee-performance-history', $data);
-        $this->load->view('include/scripts');
-        $this->load->view('include/footer');
-        $this->load->view('include/datatable', $data);
-
-    }
-
-    public function getEmployeeEvaluationHistory($evaluation_id){
-
-        $resultList = $this->am->getEmployeeEvaluationHistoryDB($evaluation_id);
-
-        // Initialize the response array with required DataTables structure
-        $response = array(
-            "data" => array()
-        );
-
-        if (!empty($resultList)) {
-            foreach ($resultList as $key => $value) {
-                $button = '<div class="dropdown">
-                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
-                                <i class="bx bx-dots-vertical-rounded"></i>
-                            </button>
-                            <div class="dropdown-menu">
-                                <a class="dropdown-item" href="'.base_url('admin/AM_Controller/viewEmployeeEvaluationDetails/'.$value['employee_evaluation_id']).'">
-                                    <i class="bx bx-edit-alt me-1"></i> View Evaluation
-                                </a>
-                                <a class="dropdown-item" href="javascript:void(0);" data-bs-toggle="modal" 
-                                    data-bs-target="#lockEvaluationModal'.$value['employee_evaluation_id'].'">
-                                    <i class="bx bxs-lock-alt"></i> Lock/Unlock
-                                </a>
-                                <a class="dropdown-item" href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#trashEmployeeEvaluation'.$value['employee_evaluation_id'].'">
-                                    <i class="bx bx-trash-alt me-1"></i> Delete Performance
-                                </a>
-                            </div>
-                        </div>
-
-                        <div class="modal fade" id="lockEvaluationModal'.$value['employee_evaluation_id'].'" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Evaluation Lock/Unlock Settings</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <!-- Employee Lock Form -->
-                                        <form method="POST" action="'.base_url('admin/AM_Controller/updateEvaluationLockUnLock').'">
-                                            <input type="hidden" name="evaluation_id" value="'.$value['employee_evaluation_id'].'">
-                                            
-                                            <div class="mb-3">
-                                                <label class="form-label d-flex align-items-center gap-2">
-                                                    Employee Access
-                                                    <i class="bx '.($value['evaluation_status'] < 2 ? 'bxs-lock-open text-success' : 'bxs-lock text-danger').'"></i>
-                                                </label>
-                                                <div class="d-flex gap-2">
-                                                    <select class="form-select" name="employee_lock_status">
-                                                        <option value="2" '.($value['evaluation_status'] > 1 ? 'selected' : '').'>Locked</option>
-                                                        <option value="1" '.($value['evaluation_status'] < 2 ? 'selected' : '').'>Unlocked</option>
-                                                    </select>
-                                                    <button type="submit" class="btn btn-primary">Update</button>
-                                                </div>
-                                            </div>
-                                        </form>
-
-                                        <!-- Manager Lock Form -->
-                                        <form method="POST" action="'.base_url('admin/AM_Controller/updateSupervisorLockUnLock').'">
-                                            <input type="hidden" name="evaluation_id" value="'.$value['employee_evaluation_id'].'">
-                                            
-                                            <div class="mb-3">
-                                                <label class="form-label d-flex align-items-center gap-2">
-                                                    Supervisor Access
-                                                    <i class="bx '.($value['evaluation_status'] < 3 ? 'bxs-lock-open text-success' : 'bxs-lock text-danger').'"></i>
-                                                </label>
-                                                <div class="d-flex gap-2">
-                                                    <select class="form-select" name="supervisor_lock_status">
-                                                        <option value="3" '.($value['evaluation_status'] > 2 ? 'selected' : '').'>Locked</option>
-                                                        <option value="2" '.($value['evaluation_status'] < 3 ? 'selected' : '').'>Unlocked</option>
-                                                    </select>
-                                                    <button type="submit" class="btn btn-primary">Update</button>
-                                                </div>
-                                            </div>
-                                        </form>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal fade" id="trashEmployeeEvaluation'.$value['employee_evaluation_id'].'" tabindex="-1" aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-centered">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Delete Evaluation</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        '.($value['evaluation_status'] > 1 ? '<p>Are you sure you want to delete this evaluation?</p>' : '<p>This evaluation is not locked!!</p>').'
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-                                        '.($value['evaluation_status'] == 1 ? '<button type="button" class="btn btn-secondary"><i class="bx bx-trash-alt me-1" disabled></i> Trash</button>' : '<a href="'.base_url('admin/AM_Controller/trashEmployeeEvaluationRecord/'.$value['employee_evaluation_id']).'" class="btn btn-danger"><i class="bx bx-trash-alt me-1"></i> Trash</a>').'
-                                    </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        ';
-
-                // Determine period and month
-                switch($value['evaluation_period']) {
-                    case '90-a':
-                        $period = 'Mid-Probation';
-                        $month = '3';
-                        break;
-                    case '182-a':
-                        $period = 'Regularization';
-                        $month = '6';
-                        break;
-                    case '182-e':
-                        $period = 'Bi-Annual';
-                        $month = '6';
-                        break;
-                    default:
-                        $period = '';
-                        $month = '';
-                }
-
-                $employee = '<div class="avatar-edit">
-                                <img src="'.base_url($value['employee_image']).'" alt="admin profile" class="w-px-40 h-auto rounded-circle">&nbsp;
-                                <a href="'.base_url("admin/AM_Controller/viewEmployeeProfile/".$value['main_employee_id']).'"><strong>'.$value['employee_first_name'].' <i class="bx bx-link"></i></strong></a>
-                            </div>';
-
-                $evaluation_status = ($value['evaluation_status'] == 1)? 'Active' : 'Inactive';
-
-                switch($value['evaluation_status']) {
-                    case '1':
-                        $evaluation_status = '<span class="badge bg-label-primary">Pending</span>';
-                        break;
-                    case '2':
-                        $evaluation_status = '<span class="badge bg-label-success">Lock By Employee</span>';
-                        break;
-                    case '3':
-                        $evaluation_status = '<span class="badge bg-label-success">Lock By Supervisor</span>';
-                        break;
-                    default:
-                        $evaluation_status = '<span class="badge bg-label-danger">Hold</span>';
-                        $month = '';
-                }
-            
-                $response['data'][] = array(
-                    $employee,
-                    $period,
-                    $value['evaluation_start_date'],
-                    $value['evaluation_end_date'],
-                    $value['spectrum_color_name'],
-                    $evaluation_status,
-                    $button
-                );
-            }
-        }
-
-        // Set proper JSON header
-        header('Content-Type: application/json');
-        echo json_encode($response);
-        exit;
-
-    }
-
     public function adminLockEmployeeEvaluation(){
 
         $supervisorId['supervisor_id'] = $this->session->userdata('user_id');
@@ -2595,6 +2331,104 @@ public function deleteLevelsRecord(){
             redirect("admin/AM_Controller/viewEmployeePerformanceList/");
             return;
         }
+    }
+
+    public function viewEmployeeEvaluationHistory($evaluation_id){
+
+        $menuControl = $this->session->userdata('user_role');
+    
+        $data['table_name'] = 'employee_evaluation_history';
+        $data['function_url'] = 'admin/AM_Controller/getEmployeeEvaluationHistory/'.$evaluation_id;
+        $columns = [
+            ['data' => 0, 'title' => 'Employee', 'filterType' => 'text'],
+            ['data' => 1, 'title' => 'Peroid', 'filterType' => 'select'],
+            ['data' => 2, 'title' => 'Start Date', 'filterType' => 'date'],
+            ['data' => 3, 'title' => 'End Date', 'filterType' => 'date'],
+            ['data' => 4, 'title' => 'Spectrum', 'filterType' => 'select'],
+            ['data' => 5, 'title' => 'Evaluation Status', 'filterType' => 'select'],
+            ['data' => 6, 'title' => 'Actions', 'orderable' => false, 'filterable' => false]
+        ];
+        $data['columns'] = $columns;
+        $data['evaluation_id'] = $evaluation_id;
+
+        $this->load->view('include/header');
+        $this->load->view('include/left-navbar', $menuControl);
+        $this->load->view('admin/employee-performance-history', $data);
+        $this->load->view('include/scripts');
+        $this->load->view('include/footer');
+        $this->load->view('include/datatable', $data);
+
+    }
+
+    public function getEmployeeEvaluationHistory($evaluation_id){
+        $resultList = $this->am->fatchEmployeeEvaluationHistory($evaluation_id);
+        $response = array();
+        if (!empty($resultList)) {
+            foreach ($resultList as $key => $value) {
+                $button = '<div class="dropdown">
+                            <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown">
+                                <i class="bx bx-dots-vertical-rounded"></i>
+                            </button>
+                            <div class="dropdown-menu">
+                                <a class="dropdown-item" href="'.base_url('admin/AM_Controller/viewEmployeeEvaluationDetails/'.$value['employee_evaluation_id']).'">
+                                    <i class="bx bx-edit-alt me-1"></i> View Evaluation
+                                </a>
+                            </div>
+                        </div>';
+
+                        $employee = '<div class="avatar-edit">
+                                <img src="'.base_url($value['employee_image']).'" alt="admin profile" class="w-px-40 h-auto rounded-circle">&nbsp;
+                                <a href="'.base_url("admin/AM_Controller/viewEmployeeProfile/".$value['main_employee_id']).'"><strong>'.$value['employee_first_name'].' <i class="bx bx-link"></i></strong></a>
+                            </div>';
+
+                        switch($value['evaluation_period']) {
+                            case '90-a':
+                                $period = 'Mid-Probation';
+                                $month = '3';
+                                break;
+                            case '182-a':
+                                $period = 'Regularization';
+                                $month = '6';
+                                break;
+                            case '182-e':
+                                $period = 'Bi-Annual';
+                                $month = '6';
+                                break;
+                            default:
+                                $period = '';
+                                $month = '';
+                        }
+
+                        switch($value['evaluation_status']) {
+                            case '1':
+                                $evaluation_status = '<span class="badge bg-label-primary">Pending</span>';
+                                break;
+                            case '2':
+                                $evaluation_status = '<span class="badge bg-label-success">Lock By Employee</span>';
+                                break;
+                            case '3':
+                                $evaluation_status = '<span class="badge bg-label-success">Lock By Supervisor</span>';
+                                break;
+                            default:
+                                $evaluation_status = '<span class="badge bg-label-danger">Hold</span>';
+                                $month = '';
+                        }
+
+
+                $response['data'][] = array(
+                    $employee,
+                    $period,
+                    $value['evaluation_start_date'],
+                    $value['evaluation_end_date'],
+                    $value['spectrum_color_name'],
+                    $evaluation_status, 
+                    $button
+                );
+            }
+        }
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit;
     }
 
     //----------------------------------------------------------------------------

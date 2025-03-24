@@ -234,6 +234,8 @@ class EM_Controller extends CI_Controller {
 
     public function getEmployeeEvaluationRecords(){
         $id = $this->session->userdata('user_id');
+
+        
         $resultList = $this->em->fetchEmployeeSubmitedEvaluation($id);
 
         $result = array();
@@ -246,30 +248,8 @@ class EM_Controller extends CI_Controller {
                 </button>
                 <div class="dropdown-menu">
                     <a class="dropdown-item" href="'.base_url('employee/EM_Controller/viewEmployeeEvaluationDetails/'.$value['employee_evaluation_id']).'"><i class="bx bx-edit-alt me-1"></i> View Evaluation</a>
-                    <a class="dropdown-item" href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#trashEmployeeEvaluation'.$value['employee_evaluation_id'].'">
-                        <i class="bx bx-trash-alt me-1"></i> Delete Performance
-                    </a>
                 </div>
-            </div>
-            <div class="modal fade" id="trashEmployeeEvaluation'.$value['employee_evaluation_id'].'" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Delete Evaluation</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            '.($value['evaluation_status'] > 1 ? 'Sorry, Your evaluation currently locked, Please consult with your supervisor!!' : '<p>Are you sure you want to delete this evaluation?</p>').'
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-                            '.($value['evaluation_status'] > 1 ? '<button type="button" class="btn btn-secondary"><i class="bx bx-trash-alt me-1" disabled></i> Trash</button>' : '<a href="'.base_url('employee/EM_Controller/trashEmployeeEvaluationRecord/'.$value['employee_evaluation_id']).'" class="btn btn-danger"><i class="bx bx-trash-alt me-1"></i> Trash</a>').'
-                        </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            ';
+            </div>';
 
             if(($value['evaluation_period'])=='90-a'){
                 $period  = 'Mid-Probation';
@@ -299,6 +279,7 @@ class EM_Controller extends CI_Controller {
                     $evaluation_status = '<span class="badge bg-label-danger">Hold</span>';
                     $month = '';
             }
+
            
             $result['data'][] = array(
                 $period,
@@ -312,22 +293,6 @@ class EM_Controller extends CI_Controller {
         echo json_encode($result);
     }
 
-    public function trashEmployeeEvaluationRecord($evaluation_id){
-        $data = array(
-            'evaluation_delete_status' => 0,
-            'modification_date' => date('Y-m-d')
-        );
-
-        $result = $this->em->trashEmployeeEvaluationRecordDB($evaluation_id, $data);
-
-        if($result){
-            $this->session->set_flashdata('success', 'Evaluation Deleted Successfully!');
-            redirect('employee/EM_Controller/listEmployeeEvaluation');
-        }else{
-            $this->session->set_flashdata('error', 'Evaluation Deleted Failed!');
-            redirect('employee/EM_Controller/listEmployeeEvaluation');
-        }
-    }
 
     public function viewEmployeeEvaluationDetails($evaluation_id){
 

@@ -67,30 +67,8 @@ class SV_Controller extends CI_Controller {
                     </button>
                     <div class="dropdown-menu">
                         <a class="dropdown-item" href="'.base_url('supervisor/SV_Controller/viewAssignEmployeeEvaluationDetails/'.$value['employee_evaluation_id']).'"><i class="bx bx-edit-alt me-1"></i> View Evaluation</a>
-                        <a class="dropdown-item" href="javascript:void(0);" data-bs-toggle="modal" data-bs-target="#trashEmployeeEvaluation'.$value['employee_evaluation_id'].'">
-                            <i class="bx bx-trash-alt me-1"></i> Delete Performance
-                        </a>
                     </div>
-                </div>
-                <div class="modal fade" id="trashEmployeeEvaluation'.$value['employee_evaluation_id'].'" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Delete Evaluation</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                '.($value['evaluation_status'] > 2 ? 'Sorry, Your evaluation currently locked, Please consult with your admin!!' : '<p>Are you sure you want to delete this evaluation?</p>').'
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-                                '.($value['evaluation_status'] > 2 ? '<button type="button" class="btn btn-secondary"><i class="bx bx-trash-alt me-1" disabled></i> Trash</button>' : '<a href="'.base_url('supervisor/SV_Controller/trashEmployeeEvaluationRecord/'.$value['employee_evaluation_id']).'" class="btn btn-danger"><i class="bx bx-trash-alt me-1"></i> Trash</a>').'
-                            </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                ';
+                </div>';
     
                 // Determine period and month
                 switch($value['evaluation_period']) {
@@ -147,24 +125,6 @@ class SV_Controller extends CI_Controller {
         header('Content-Type: application/json');
         echo json_encode($response);
         exit;
-    }
-
-
-    public function trashEmployeeEvaluationRecord($evaluation_id){
-        $data = array(
-            'evaluation_delete_status' => 0,
-            'modification_date' => date('Y-m-d')
-        );
-
-        $result = $this->sm->trashEmployeeEvaluationRecordDB($evaluation_id, $data);
-
-        if($result){
-            $this->session->set_flashdata('success', 'Evaluation Deleted Successfully!');
-            redirect('supervisor/SV_Controller/viewEmployeePerformanceList');
-        }else{
-            $this->session->set_flashdata('error', 'Evaluation Deleted Failed!');
-            redirect('supervisor/SV_Controller/viewEmployeePerformanceList');
-        }
     }
 
     public function viewAssignEmployeeEvaluationDetails($evaluation_id){
@@ -437,6 +397,96 @@ class SV_Controller extends CI_Controller {
         echo json_encode($response);
         exit;
     }
+
+    public function employeePerformanceHistory($evaluation_id){
+        $menuControl = $this->session->userdata('user_role');
+        $data['table_name'] = 'supervisor_employee_performance_history';
+        $data['function_url'] ='supervisor/SV_Controller/getEmployeeEvaluationHistory/'.$evaluation_id;
+        $columns = [
+            ['data' => 0, 'title' => 'Employee', 'filterType' => 'text'],
+            ['data' => 1, 'title' => 'Evaluation Period', 'filterType' => 'text'],
+            ['data' => 2, 'title' => 'Evaluation Start Date', 'filterType' => 'date'],
+            ['data' => 3, 'title' => 'Evaluation End Date', 'filterType' => 'date'],
+            ['data' => 4, 'title' => 'Spectrum', 'filterType' => 'text'],
+            ['data' => 5, 'title' => 'Evaluation Status', 'filterType' => 'text'],
+            ['data' => 6, 'title' => 'Action', 'filterType' => 'text'],
+        ];
+        $data['columns'] = $columns;
+        $data['evaluation_id'] = $evaluation_id;
+        $this->load->view('include/header');
+        $this->load->view('include/left-navbar', $menuControl);
+        $this->load->view('supervisor/employee-performance-history', $data);
+        $this->load->view('include/scripts');
+        $this->load->view('include/footer');
+        $this->load->view('include/datatable', $data);
+    }
+
+    public function getEmployeeEvaluationHistory($evaluation_id){
+
+        $supervisor_id = $this->session->userdata('user_id');
+        
+        $resultList = $this->sm->fatchEmployeeEvaluationHistory($evaluation_id, $supervisor_id);
+
+        // Initialize the response array with required DataTables structure
+        $response = array(
+            "data" => array()
+        );
+        if (!empty($resultList)) {
+            foreach ($resultList as $key => $value) {
+                // Determine period and month
+                switch($value['evaluation_period']) {
+                    case '90-a':
+                        $period = 'Mid-Probation';
+                        $month = '3';
+                        break;
+                    case '182-a':
+                        $period = 'Regularization';
+                        $month = '6';
+                        break;
+                    case '182-e':
+                        $period = 'Bi-Annual';
+                        $month = '6';
+                        break;
+                    default:
+                        $period = '';
+                        $month = '';
+                }
+                $employee = '<div class="avatar-edit">
+                                <img src="'.base_url($value['employee_image']).'" alt="admin profile" class="w-px-40 h-auto rounded-circle">&nbsp;
+                                <a href="'.base_url("supervisor/SV_Controller/viewAssignEmployeeProfileDetails/".$value['main_employee_id']).'"><strong>'.$value['employee_first_name'].' <i class="bx bx-link"></i></strong></a>
+                            </div>';
+
+                $button = '<a href="'.base_url("supervisor/SV_Controller/viewAssignEmployeeEvaluationDetails/".$value['employee_evaluation_id']).'" class="btn btn-icon btn-sm btn-primary"><i class="bx bx-link"></i></a>';
+                switch($value['evaluation_status']) {
+                    case '1':
+                        $evaluation_status = '<span class="badge bg-label-primary">Un-Locked</span>';
+                        break;
+                    case '2':
+                        $evaluation_status = '<span class="badge bg-label-success">Lock By Employee</span>';
+                        break;
+                    case '3':
+                        $evaluation_status = '<span class="badge bg-label-success">Lock By Supervisor</span>';
+                        break;
+                    default:
+                        $evaluation_status = '';
+                }
+                $response['data'][] = array(
+                    $employee,
+                    $period,
+                    $value['evaluation_start_date'],
+                    $value['evaluation_end_date'],
+                    $value['spectrum_color_name'],
+                    $evaluation_status,
+                    $button
+                );
+            }
+        }
+        // Set proper JSON header
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit;
+    }
+
 
 }
 ?>
