@@ -212,7 +212,7 @@
                                 <button class="btn btn-primary" disabled>Edit Performance</button>
                             <?php endif; ?>
 
-                            <a href="<?php echo base_url('admin/AM_Controller/viewEmployeePerformanceHistory/'.$emp_evaluation_period->employee_evaluation_id); ?>" class="btn btn-primary">
+                            <a href="<?php echo base_url('admin/AM_Controller/viewEmployeeEvaluationHistory/'.$emp_evaluation_period->employee_evaluation_id) ?>" class="btn btn-primary">
                                 Performance History
                             </a>
 

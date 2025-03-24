@@ -325,7 +325,7 @@
                   <div class="dropdown-divider"></div>
                </li>
                <li>
-                  <a class="dropdown-item" href="<?php echo base_url(''); ?>">
+                  <a class="dropdown-item" href="<?php echo base_url('change-password'); ?>">
                   <i class='bx bx-wrench me-2'></i>
                   <span class="align-middle">Change Password</span>
                   </a>

@@ -1,5 +1,20 @@
 <div class="min-vh-100 bg-primary d-flex align-items-center">
     <div class="container">
+        <div id="alerts-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
+            <?php if($uploaded = $this->session->flashdata('success')): ?>
+                <div class="alert alert-success alert-dismissible alert-floating" role="alert">
+                    <strong><?php echo $uploaded; ?></strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
+
+            <?php if($uploaded = $this->session->flashdata('error')): ?>
+                <div class="alert alert-danger alert-dismissible alert-floating" role="alert">
+                    <strong><?php echo $uploaded; ?></strong>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            <?php endif; ?>
+        </div>
         <div class="row justify-content-center">
             <div class="col-12 col-lg-10">
                 <div class="card border-0 shadow-lg rounded-4 overflow-hidden">
@@ -55,7 +70,7 @@
                                 </div>
 
                                 <div class="d-flex justify-content-between align-items-center mb-4">
-                                    <a href="<?= base_url('auth/forgot-password') ?>" class="text-decoration-none text-primary small">
+                                    <a href="<?= base_url('forgot-password') ?>" class="text-decoration-none text-primary small">
                                         Forgot password?
                                     </a>
                                 </div>
